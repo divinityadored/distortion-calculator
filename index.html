@@ -112,12 +112,9 @@ textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #c
   </div>
   
  <form id="distortion-form" action="https://formspree.io/f/mpqjgzwy" method="POST">
-  <input type="hidden" name="_subject" value="Distortion Calculator Feedback">
-  <input type="email" name="_replyto" style="display:none" required>
-  <input type="text
-  <input type="hidden" name="_subject" value="Distortion Calculator Feedback">
-  <input type="hidden" name="_replyto" id="_replyto">
-  <input type="text" name="_gotcha" style="display:none">
+ <input type="hidden" name="_subject" value="Distortion Calculator Feedback">
+<input type="hidden" name="_replyto" id="_replyto">
+<input type="text" name="_gotcha" style="display:none">
 
     <div class="form-section">
       <h2>Your Name</h2>
@@ -223,7 +220,7 @@ textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #c
       </select>
     </div>
     
-    <button type="submit" class="btn-primary">Calculate Distortion Band</button>
+    <button type="button"id="calculate-btn"class="btn-primary">Calculate Distortion Band</button>
   </form>
   
   <div id="result-section">
@@ -366,8 +363,7 @@ document.querySelectorAll('#star-rating span').forEach(star => {
   });
 });
 
-
-  
+document.getElementById('calculate-btn').addEventListener('click', function() {
   state.name = document.getElementById('user-name').value;
   
   const g1 = document.querySelector('#gender-q1 .option.selected');
