@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soul Quantics Distortion Calculator</title>
+<style>
+:root {
+  --bg-dark: #0f1428;
+  --bg-mid: #1a1f3d;
+  --bg-purple: #2a1d4a;
+  --gold: #ffd700;
+  --gold-light: #ffed4a;
+  --text-light: #f0e68c;
+  --panel-bg: rgba(255,255,255,0.05);
+  --border-glow: rgba(240,230,140,0.2);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  font-family: 'Georgia', serif; 
+  background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-purple) 100%);
+  color: var(--text-light); 
+  min-height: 100vh; 
+  padding: 20px;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+h1 { text-align: center; color: var(--gold); margin-bottom: 30px; font-size: 2.5em; }
+.form-section { background: var(--panel-bg); padding: 30px; border-radius: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); border: 1px solid var(--border-glow); }
+.form-section h2 { color: var(--gold); margin-bottom: 20px; font-size: 1.5em; }
+input[type="text"], select { width: 100%; padding: 12px; border-radius: 10px; border: none; margin: 10px 0; font-size: 1em; background: rgba(255,255,255,0.9); }
+.option-group { margin: 15px 0; }
+.option { display: block; padding: 15px; margin: 10px 0; background: rgba(255,255,255,0.1); border-radius: 10px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+.option:hover { background: rgba(255,237,74,0.2); border-color: var(--gold-light); }
+.option.selected { background: linear-gradient(45deg, rgba(255,215,0,0.3), rgba(255,237,74,0.3)); border-color: var(--gold); }
+.btn-primary { background: linear-gradient(45deg, var(--gold), var(--gold-light)); color: #1e3c72; border: none; padding: 18px 40px; border-radius: 15px; font-size: 1.3em; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; transition: transform 0.3s; }
+.btn-primary:hover { transform: scale(1.05); }
+.btn-primary:disabled { background: linear-gradient(45deg, #666, #888); cursor: not-allowed; transform: scale(1); }
+#result-section { display: none; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #1e3c72; padding: 40px; border-radius: 20px; margin-top: 30px; }
+.band-blurb { background: rgba(0,0,0,0.2); padding: 25px; border-radius: 15px; margin: 20px 0; text-align: left; line-height: 1.6; }
+.band-blurb p { margin: 10px 0; }
+.band-blurb strong { display: block; margin-top: 15px; color: #1e3c72; }
+.email-section { background: rgba(255,255,255,0.9); padding: 25px; border-radius: 15px; margin-top: 25px; }
+.email-section input[type="email"] { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin: 10px 0; }
+.resonance { margin-top: 20px; }
+.stars { font-size: 2.5em; margin: 10px 0; cursor: pointer; user-select: none; }
+.stars span { transition: all 0.2s; }
+.stars span:hover, .stars span.filled { color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+.checkbox-group label { display: block; margin: 10px 0; cursor: pointer; }
+textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; margin-top: 10px; font-family: inherit; }
+.disclaimer { background: rgba(30,60,114,0.3); padding: 20px; border-radius: 10px; margin-top: 20px; font-size: 0.95em; line-height: 1.5; }
+.warning-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+.warning-content { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 40px; border-radius: 20px; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
+.warning-content h3 { color: var(--gold); margin-bottom: 20px; }
+.warning-btn { margin: 10px 0; padding: 15px; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; width: 100%; }
+.warning-btn.primary { background: linear-gradient(45deg, var(--gold), var(--gold-light)); color: #1e3c72; }
+.warning-btn.secondary { background: rgba(255,255,255,0.2); color: white; }
+.faq-section { background: var(--panel-bg); padding: 30px; border-radius: 20px; margin-bottom: 30px; backdrop-filter: blur(10px); border: 1px solid var(--border-glow); }
+.faq-item { margin-bottom: 15px; border-bottom: 1px solid var(--border-glow); padding-bottom: 15px; }
+.faq-question { color: var(--gold); font-size: 1.2em; font-weight: bold; cursor: pointer; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; transition: all 0.3s; position: relative; padding-right: 40px; }
+.faq-question:hover { background: rgba(255,237,74,0.1); }
+.faq-question::after { content: '+'; position: absolute; right: 15px; font-size: 1.5em; transition: transform 0.3s; }
+.faq-question.active::after { transform: rotate(45deg); }
+.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 15px; }
+.faq-answer.open { max-height: 500px; padding: 15px; }
+.faq-answer p { margin: 10px 0; line-height: 1.6; }
+@media (max-width: 768px) {
+  h1 { font-size: 1.8em; }
+  .form-section { padding: 20px; }
+  .faq-section { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🌌 Soul Quantics<br>Distortion Calculator</h1>
+  
+  <div class="faq-section">
+    <h2 style="color: var(--gold); text-align: center; margin-bottom: 20px;">Frequently Asked Questions</h2>
+    
+    <div class="faq-item">
+      <div class="faq-question">What is distortion?</div>
+      <div class="faq-answer">
+        <p>Distortion is the systemically upheld, intentionally engineered, harmful infrastructure that targets individuals based on how they deviate from an unnatural "default" standard-the wealthy, white, cisgender, Christian, able-bodied, mediocre male archetype. This infrastructure creates real, measurable pressure that increases the further you deviate from this harmful norm.</p>
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <div class="faq-question">How is distortion measured?</div>
+      <div class="faq-answer">
+        <p>Distortion is quantified by mapping how societal norms and standards create compounded harm against anyone who deviates from the "default." Each layer of deviation-whether race, gender, spirituality, economic status, or visible difference-adds additional pressure intensity. The more ways you deviate, the more society structurally targets you through systemic barriers, bias, and violence.</p>
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <div class="faq-question">What does astrology have to do with this?</div>
+      <div class="faq-answer">
+        <p>Astrology offers a snapshots that shows us how life could feel outside of distortion-a baseline of who we are before society's traumas and pressures dysregulate our systems. Your birth chart captures your natural rhythms, gifts, and pathways before systemic harm changed you in ways you didn't consent to. The Baseline Calm Equation braids this cosmic blueprint with your distortion measurements to reveal the gap between your authentic design and your lived experience.</p>
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <div class="faq-question">Where can I learn more?</div>
+      <div class="faq-answer">
+        <p><strong>Explore Soul Quantics:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><a href="https://soulquantics.substack.com" target="_blank" style="color: var(--gold);">Soul Quantics Substack</a> — Deep dives into the philosophy and science</li>
+          <li><strong>Neural Gold</strong> — The foundational framework bridging neuroscience, psychology, and metaphysics</li>
+          <li><strong>Baseline Calm Equation</strong> — Full distortion + cosmoprint report (coming soon)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <form id="distortion-form"action="https://formspree.io/f/mpqjgzwy" method="POST"><input type="hidden" name="_subject" value="Distortion Calculator Feedback">
+    <div class="form-section">
+      <h2>Your Name</h2>
+      <input type="text" id="user-name" placeholder="Enter your name" required>
+    </div>
+    
+    <div class="form-section">
+      <h2>Gender Alignment</h2>
+      <p><strong>Which describes your gender alignment best?</strong></p>
+      <div class="option-group" id="gender-q1">
+        <div class="option" data-value="1">I consistently feel aligned with my birth gender.</div>
+        <div class="option" data-value="5">I do not feel aligned with my birth gender.</div>
+        <div class="option" data-value="4">I fluctuate between feeling aligned and misaligned with my gender.</div>
+        <div class="option" data-value="2">I don't know / I don't wish to answer.</div>
+      </div>
+      
+      <p style="margin-top:25px;"><strong>How much pressure do you feel from gender norms?</strong></p>
+      <div class="option-group" id="gender-q2">
+        <div class="option" data-value="1">I rarely feel pressure about my alignment to gender norms.</div>
+        <div class="option" data-value="3">I sometimes feel pressured to perform/prove myself against gender stereotypes.</div>
+        <div class="option" data-value="4">I sometimes feel unsafe or unseen because of my gender/non-gender compared to gender norms.</div>
+        <div class="option" data-value="5">I consistently feel unsafe, unseen, and/or constrained by gender norms and my own gender/non-gender alignment.</div>
+        <div class="option" data-value="2">I don't want to answer / I don't know how I feel.</div>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h2>Ethnic/Cultural Alignment</h2>
+      <select id="ethnic" required>
+        <option value="">Select one...</option>
+        <option value="10">Black/African American</option>
+        <option value="10">Black/Diaspora</option>
+        <option value="9">Indigenous-American</option>
+        <option value="9">Latino/Hispanic</option>
+        <option value="8">Biracial/Multiracial</option>
+        <option value="7">South Asian</option>
+        <option value="5.5">Arabic/SWANA</option>
+        <option value="5">East Asian</option>
+        <option value="6">Asian/Diaspora</option>
+        <option value="1">White/European</option>
+        <option value="2">Other/Not Listed</option>
+        <option value="3">Prefer not to answer</option>
+      </select>
+    </div>
+    
+    <div class="form-section">
+      <h2>Spiritual Alignment</h2>
+      <select id="spiritual" required>
+        <option value="">Select one...</option>
+        <option value="1">Christian</option>
+        <option value="4">Jewish</option>
+        <option value="6">Muslim/Sikh</option>
+        <option value="3.5">Atheist (logic/non-spiritual)</option>
+        <option value="5">Atheist-spiritual</option>
+        <option value="5">Open/Pagan/Ancestral</option>
+        <option value="3">Personal Dev (Buddhist/Taoist)</option>
+        <option value="3.5">Hindu</option>
+        <option value="3">Other/Not Listed</option>
+        <option value="3">Prefer not to answer</option>
+      </select>
+    </div>
+    
+    <div class="form-section">
+      <h2>Economic Cognitive Strain</h2>
+      <select id="economic" required>
+        <option value="">How much does your economic situation occupy your thoughts?</option>
+        <option value="0.5">Rarely occupies thoughts</option>
+        <option value="1.5">Occasionally</option>
+        <option value="2.5">Regularly</option>
+        <option value="4">Frequently</option>
+        <option value="5">Dominates awareness</option>
+      </select>
+    </div>
+    
+    <div class="form-section">
+      <h2>System-Distortion Visibility</h2>
+      <p><strong>How visibly targeted do you feel by the dominant social standards (white, cis, male, tall, able-bodied, financially stable, Christian)?</strong></p>
+      <div class="option-group" id="visibility">
+        <div class="option" data-value="1">Rarely; I'm usually treated as if I 'fit' the default.</div>
+        <div class="option" data-value="3">Sometimes; certain parts of me are treated as out of line.</div>
+        <div class="option" data-value="4">Often; many parts of me are treated as out of line.</div>
+        <div class="option" data-value="5">Almost always; I feel structurally targeted in most spaces.</div>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h2>Optional: Sun Sign Flavor</h2>
+      <p>Do you want your Distortion Band described through your Sun sign?</p>
+      <select id="sun-sign">
+        <option value="">No, skip this</option>
+        <option value="Aries">Aries</option>
+        <option value="Taurus">Taurus</option>
+        <option value="Gemini">Gemini</option>
+        <option value="Cancer">Cancer</option>
+        <option value="Leo">Leo</option>
+        <option value="Virgo">Virgo</option>
+        <option value="Libra">Libra</option>
+        <option value="Scorpio">Scorpio</option>
+        <option value="Sagittarius">Sagittarius</option>
+        <option value="Capricorn">Capricorn</option>
+        <option value="Aquarius">Aquarius</option>
+        <option value="Pisces">Pisces</option>
+      </select>
+    </div>
+    
+    <button type="submit" class="btn-primary">Calculate Distortion Band</button>
+  </form>
+  
+  <div id="result-section">
+    <h2 id="band-title"></h2>
+    <p id="distortion-percent" style="font-size:1.5em; font-weight:bold; margin:15px 0;"></p>
+    
+    <div class="band-blurb" id="band-blurb"></div>
+    
+    <div id="sun-flavor-section" style="display:none; background:rgba(0,0,0,0.2); padding:20px; border-radius:15px; margin:20px 0;">
+      <h3>Sun Sign Flavor</h3>
+      <p id="sun-flavor-text"></p>
+    </div>
+    
+    <div class="disclaimer">
+      <strong>In the full Baseline Calm report</strong>, your Sun, Moon, Rising, and all distortion channels are woven together with structural precision.
+    </div>
+    
+    <div class="email-section">
+      <h3 style="color:#1e3c72; margin-bottom:15px;">Get Your Results + Updates</h3>
+      <p style="color:#333; margin-bottom:10px;">You DO NOT have to share your information to view your results, but you can receive your results via email and stay updated on Soul Quantics work.</p>
+      
+      <input type="email" id="user-email" placeholder="Your email (optional)">
+      <label style="display:block; margin:15px 0; color:#333;">
+        <input type="checkbox" id="consent-checkbox"> Yes, send me my results + updates
+      </label>
+      
+      <div class="resonance">
+        <p style="color:#333; font-weight:bold; margin:15px 0;">Optional resonance check (30 seconds):</p>
+        <p style="color:#666;">How accurate did this feel?</p>
+        <div class="stars" id="star-rating">
+          <span data-rating="1">⭐</span>
+          <span data-rating="2">⭐</span>
+          <span data-rating="3">⭐</span>
+          <span data-rating="4">⭐</span>
+          <span data-rating="5">⭐</span>
+        </div>
+        
+        <div class="checkbox-group" style="color:#333;">
+          <label><input type="checkbox" name="resonant-band"> Most resonant: The Band description</label>
+          <label><input type="checkbox" name="resonant-sun"> Most resonant: The Sun flavor</label>
+          <label><input type="checkbox" name="off-gender"> Felt off: Gender</label>
+          <label><input type="checkbox" name="off-ethnic"> Felt off: Ethnicity</label>
+          <label><input type="checkbox" name="off-other"> Felt off: Other</label>
+        </div>
+        
+        <textarea id="additional-feedback" rows="3" placeholder="What else? (optional)"></textarea>
+      </div>
+      
+      <button class="btn-primary" id="submit-feedback">Submit Feedback (Optional)</button>
+    </div>
+    
+    <div class="disclaimer">
+      This data will be sent to Soul Quantics and stored so I can learn and refine my work with your consent.
+    </div>
+  </div>
+</div>
+
+<div class="warning-modal" id="warning-modal">
+  <div class="warning-content">
+    <h3>⚠️ Incomplete Response</h3>
+    <p>Your Distortion estimate is designed to use <strong>all</strong> of the questions for the most accurate result.</p>
+    <p style="margin-top:15px;">You can:</p>
+    <button class="warning-btn primary" id="go-back-btn">Go back and answer the remaining questions</button>
+    <button class="warning-btn secondary" id="continue-partial-btn">Continue with a partial estimate (may be incomplete or misleading)</button>
+  </div>
+</div>
+
+<script>
+const state = {
+  name: '',
+  genderQ1: null,
+  genderQ2: null,
+  ethnic: null,
+  spiritual: null,
+  economic: null,
+  visibility: null,
+  sunSign: ''
+};
+
+const bandBlurbs = {
+  1: {
+    title: 'Band 1 (0–25%) — Slight Dysregulation',
+    text: `<p><strong>The rhythm feels:</strong> Slightly uncertain after clarity arrives. You know the truth, but something whispers "will this land?" There's hesitation, friction, not quite blocking.</p>
+<p><strong>Somatic signal:</strong> Quickening in your chest with slight throat tightness. Shoulders carry a little weight: "Is it safe to say this?"</p>
+<p><strong>The gap:</strong> Your gifts are accessible, but your system questions their reception.</p>
+<p><strong>What's true:</strong> This isn't internal doubt. It's your nervous system picking up real environmental friction.</p>
+<p><strong>Internal scan:</strong> Do you second-guess clarity right after it arrives? Do conversations take more energy than they used to?</p>`
+  },
+  2: {
+    title: 'Band 2 (26–50%) — Noticeable Dysregulation',
+    text: `<p><strong>The rhythm feels:</strong> Fragmented. Clarity comes in bursts but hits a wall. You transmit on a frequency few are tuned to.</p>
+<p><strong>Somatic signal:</strong> Downloads arrive, but the channel feels congested. Throat tighter, chest compressed. "I said the true thing, but it didn't land."</p>
+<p><strong>The gap:</strong> Your clarity feels brilliant and invisible. Connection requires constant translation.</p>
+<p><strong>What's true:</strong> The world is dysregulated around you, not you around the world.</p>
+<p><strong>Internal scan:</strong> Does your body brace before sharing insights? Does belonging feel possible but exhausting?</p>`
+  },
+  3: {
+    title: 'Band 3 (51–75%) — Significant Dysregulation',
+    text: `<p><strong>The rhythm feels:</strong> Shut down or obsessive. Clarity feels dangerous to access. Connection feels impossible; isolation feels safer.</p>
+<p><strong>Somatic signal:</strong> Quickening gone or chaotic. Hypervigilance or numbness. Throat closed, center defended.</p>
+<p><strong>The gap:</strong> Your upright paths (clarity, connection) feel risky. Shadow patterns dominate for safety.</p>
+<p><strong>What's true:</strong> Your system built these walls rationally. They protected you.</p>
+<p><strong>Internal scan:</strong> Has your creative spark quieted? Has reaching for connection become too costly?</p>`
+  },
+  4: {
+    title: 'Band 4 (76–100%) — Severe Dysregulation',
+    text: `<p><strong>The rhythm feels:</strong> Absent or locked in survival loops. Clarity feels fraudulent. Belonging feels like a fantasy.</p>
+<p><strong>Somatic signal:</strong> Numbness or constant doubt. Center cold, defended. Your body has disconnected to survive.</p>
+<p><strong>The gap:</strong> Chronic survival mode. Gifts and shadows both heavily compromised.</p>
+<p><strong>What's true:</strong> This is adaptation to sustained, irrational pressure—not your baseline truth.</p>
+<p><strong>Internal scan:</strong> What is your body protecting behind its walls? Clarity? Connection? Voice?</p>`
+  }
+};
+
+// FAQ accordion
+document.querySelectorAll('.faq-question').forEach(question => {
+  question.addEventListener('click', function() {
+    this.classList.toggle('active');
+    const answer = this.nextElementSibling;
+    answer.classList.toggle('open');
+  });
+});
+
+document.querySelectorAll('.option-group').forEach(group => {
+  group.querySelectorAll('.option').forEach(option => {
+    option.addEventListener('click', function() {
+      group.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
+});
+
+document.querySelectorAll('#star-rating span').forEach(star => {
+  star.addEventListener('click', function() {
+    const rating = this.dataset.rating;
+    document.querySelectorAll('#star-rating span').forEach((s, i) => {
+      if (i < rating) s.classList.add('filled');
+      else s.classList.remove('filled');
+    });
+  });
+});
+
+document.getElementById('distortion-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  state.name = document.getElementById('user-name').value;
+  
+  const g1 = document.querySelector('#gender-q1 .option.selected');
+  const g2 = document.querySelector('#gender-q2 .option.selected');
+  const vis = document.querySelector('#visibility .option.selected');
+  
+  state.genderQ1 = g1 ? parseFloat(g1.dataset.value) : null;
+  state.genderQ2 = g2 ? parseFloat(g2.dataset.value) : null;
+  state.ethnic = parseFloat(document.getElementById('ethnic').value) || null;
+  state.spiritual = parseFloat(document.getElementById('spiritual').value) || null;
+  state.economic = parseFloat(document.getElementById('economic').value) || null;
+  state.visibility = vis ? parseFloat(vis.dataset.value) : null;
+  state.sunSign = document.getElementById('sun-sign').value;
+  
+  const required = [state.genderQ1, state.genderQ2, state.ethnic, state.spiritual, state.economic, state.visibility];
+  const allFilled = required.every(val => val !== null);
+  
+  if (!allFilled) {
+    document.getElementById('warning-modal').style.display = 'flex';
+    return;
+  }
+  
+  calculateAndDisplay();
+});
+
+document.getElementById('go-back-btn').addEventListener('click', function() {
+  document.getElementById('warning-modal').style.display = 'none';
+});
+
+document.getElementById('continue-partial-btn').addEventListener('click', function() {
+  document.getElementById('warning-modal').style.display = 'none';
+  calculateAndDisplay();
+});
+
+function calculateAndDisplay() {
+  let total = 0;
+  total += state.genderQ1 || 0;
+  total += state.genderQ2 || 0;
+  total += state.ethnic || 0;
+  total += state.spiritual || 0;
+  total += state.economic || 0;
+  total += state.visibility || 0;
+  
+  const maxPossible = 45;
+  let distortionPercent = Math.min(100, Math.round((total / maxPossible) * 100));
+  
+  let band;
+  if (distortionPercent <= 25) band = 1;
+  else if (distortionPercent <= 50) band = 2;
+  else if (distortionPercent <= 75) band = 3;
+  else band = 4;
+  
+  document.getElementById('band-title').textContent = `${state.name}, your Distortion Band is ${band}`;
+  document.getElementById('distortion-percent').textContent = `Estimated Distortion: ${distortionPercent}%`;
+  document.getElementById('band-blurb').innerHTML = bandBlurbs[band].text;
+  
+  if (state.sunSign) {
+    document.getElementById('sun-flavor-section').style.display = 'block';
+    document.getElementById('sun-flavor-text').textContent = 
+      `For a ${state.sunSign} Sun at Band ${band}, distortion may feel uniquely filtered through your archetypal lens. (Full Sun expressions available in Baseline Calm report.)`;
+  }
+  
+  document.getElementById('result-section').style.display = 'block';
+  document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+document.getElementById('submit-feedback').addEventListener('click', function() {
+  const email = document.getElementById('user-email').value;
+  const consent = document.getElementById('consent-checkbox').checked;
+  
+  if (email && consent) {
+    alert('Thank you! Your results and feedback have been recorded. (In production, this would send to your backend.)');
+  } else {
+    alert('Feedback recorded locally. (In production, anonymous feedback would be logged.)');
+  }
+});
+</script>
+</body>
+</html>
